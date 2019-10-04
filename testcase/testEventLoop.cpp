@@ -1,11 +1,12 @@
 #include <iostream>
 #include <thread>
 #include "yvent/EventLoop.h"
+#include "yvent/Channel.h"
 #include "gtest/gtest.h"
 
 namespace {
 
-// The fixture for testing class Foo.
+// The fixture for testing class EventLoopTest.
 class EventLoopTest : public ::testing::Test {
  protected:
   // You can remove any or all of the following functions if its body
@@ -17,7 +18,7 @@ class EventLoopTest : public ::testing::Test {
 
     ~EventLoopTest() override {
      // You can do clean-up work that doesn't throw exceptions here.
-}
+    }
 
     // If the constructor and destructor are not enough for setting up
     // and cleaning up each test, you can define the following methods:
@@ -37,14 +38,20 @@ class EventLoopTest : public ::testing::Test {
 
 TEST_F(EventLoopTest, loop) {
 
-   yvent::EventLoop loop;
-   loop.loop();
+   std::thread loopThread([](){
+        yvent::EventLoop loop;
+        yvent::Channel channel(&loop, 0);
+        channel.enableRead();
+        ASSERT_TRUE(loop.isInLoopThread());
+        loop.loop();
+    });
+    loopThread.join();
 }
 
 TEST_F(EventLoopTest, isInloopThread) {
     yvent::EventLoop loop;
     ASSERT_TRUE(loop.isInLoopThread());
-    
+
     std::thread loopThread([&](){
         ASSERT_FALSE(loop.isInLoopThread());
     });

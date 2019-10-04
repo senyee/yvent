@@ -2,11 +2,12 @@
 #define YVENT_EVENTLOOP_H
 
 #include <atomic>
-
+#include "noncopyable.h"
+#include "Poll.h"
 namespace yvent
 {
-
-class EventLoop
+class Poll;
+class EventLoop:public noncopyable
 {
 public:
     EventLoop();
@@ -14,12 +15,18 @@ public:
 
     void loop();
     bool isInLoopThread();
+    void updateChannel(Channel* channel);
+    void quit();
 private:
     const pid_t tid_;
     std::atomic_bool quit_;
+    Poll poll_;
+
+private:
+    Poll::ChannelList activeChannels_;
 };
 
-}//yvent
+}//namespace yvent
 
 
 

@@ -5,6 +5,7 @@
 
 #include "Logging.h"
 #include "EventLoop.h"
+#include "Channel.h"
 
 using namespace yvent;
 
@@ -22,7 +23,8 @@ pid_t gettid()
 
 EventLoop::EventLoop()
         : tid_(gettid()),
-          quit_(false)
+          quit_(false),
+          poll_(this)
 {
     assert(t_Eventloop == nullptr);
     t_Eventloop = this;
@@ -41,5 +43,23 @@ bool EventLoop::isInLoopThread()
 
 void EventLoop::loop()
 {
-    LOG_TRACE("looping\n");
+    assert(isInLoopThread());
+    LOG_TRACE("tid_:%d,looping\n",tid_);
+    while(!quit_) {
+        poll_.poll(activeChannels_);
+        for (auto channel: activeChannels_) {
+            channel->handleEvents();
+        }
+    }
+}
+
+void EventLoop::updateChannel(Channel* channel)
+{
+    LOG_TRACE("fd:%d\n", channel->fd());
+    poll_.updateChannel(channel);
+}
+
+void EventLoop::quit()
+{
+    quit_ = true;
 }

@@ -2,6 +2,9 @@ set(SOURCE_FILES
         EventLoop.cpp
         Poll.cpp
         Channel.cpp
+        Acceptor.cpp
+        InetAddr.cpp
+        Socket.cpp
         )
 
 add_library(yvent STATIC ${SOURCE_FILES})
@@ -14,5 +17,8 @@ set(HEADERS
         EventLoop.h
         Poll.h
         Channel.h
+        Acceptor.h
+        InetAddr.h
+        Socket.h
         )
 install(FILES ${HEADERS} DESTINATION include)

@@ -2,8 +2,10 @@
 #include <thread>
 #include "yvent/EventLoop.h"
 #include "yvent/Channel.h"
+#include "yvent/InetAddr.h"
+#include "yvent/Acceptor.h"
 #include "gtest/gtest.h"
-
+using namespace yvent;
 namespace {
 
 // The fixture for testing class EventLoopTest.
@@ -43,7 +45,7 @@ TEST_F(EventLoopTest, loop) {
         yvent::Channel channel(&loop, 0);
         channel.enableRead();
         ASSERT_TRUE(loop.isInLoopThread());
-        loop.loop();
+        //loop.loop();
     });
     loopThread.join();
 }
@@ -58,5 +60,14 @@ TEST_F(EventLoopTest, isInloopThread) {
     loopThread.join();
 }
 
+TEST_F(EventLoopTest, listen) {
+    EventLoop loop;
+    ASSERT_TRUE(loop.isInLoopThread());
+
+    InetAddr host(1234);
+    Acceptor acceptor(&loop, host);
+    acceptor.listen();
+    loop.loop();
+}
 
 }  // namespace

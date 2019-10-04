@@ -15,6 +15,7 @@ Poll::Poll(EventLoop* loop)
     events_(128),
     epfd_( epoll_create1(0) )
 {
+    LOG_TRACE("epfd_:%d\n",epfd_);
     if(-1 == epfd_) {
         LOG_SYSFATAL("epfd_ creat failed\n");
     }
@@ -51,10 +52,10 @@ void Poll::poll(ChannelList& channelList)
 
 void Poll::updateChannel(Channel* channel)
 {
-    LOG_TRACE("fd:%d\n", channel->fd());
     assert(loop_->isInLoopThread());
     int op = 0;
     int state = channel->state();
+    LOG_TRACE("fd:%d, state:%d\n", channel->fd(), state);
     if(state == Channel::kNew) {
         assert(!channel->isNoEvent());
         op = EPOLL_CTL_ADD;

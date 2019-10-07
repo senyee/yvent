@@ -57,7 +57,7 @@ void Acceptor::handleRead()
         InetAddr inetAddrPeer(0);
         inetAddrPeer.setAddr(addr);
         if(newConnectionCallback_) {
-            newConnectionCallback_(cfd, host_, inetAddrPeer);
+            newConnectionCallback_(cfd, inetAddrPeer);
         } else {
             ::close(cfd);
         }

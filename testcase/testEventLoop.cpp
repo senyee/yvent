@@ -6,6 +6,7 @@
 #include "yvent/Channel.h"
 #include "yvent/InetAddr.h"
 #include "yvent/Acceptor.h"
+#include "yvent/TcpServer.h"
 #include "gtest/gtest.h"
 using namespace yvent;
 namespace {
@@ -77,16 +78,30 @@ TEST_F(EventLoopTest, listen) {
     //loop.loop();
 }
 
-TEST(Acceptor,newConnectionCallback) {
+// TEST(Acceptor,newConnectionCallback) {
+//     EventLoop loop;
+//     ASSERT_TRUE(loop.isInLoopThread());
+
+//     InetAddr host(1234);
+//     Acceptor acceptor(&loop, host);
+//     acceptor.listen();
+//     acceptor.setNewConnectionCallback([](int cfd, const InetAddr &peer){
+//         ::write(cfd, "hello\n", 7);
+//         ::close(cfd);
+//     });
+//     //loop.loop();
+
+// }
+
+TEST(TcpServer,newConnectionCallback) {
     EventLoop loop;
     ASSERT_TRUE(loop.isInLoopThread());
 
     InetAddr host(1234);
-    Acceptor acceptor(&loop, host);
-    acceptor.listen();
-    acceptor.setNewConnectionCallback([](int cfd, const InetAddr &local, const InetAddr &peer){
-        ::write(cfd, "hello\n", 7);
-        ::close(cfd);
+    TcpServer server(&loop, host);
+    server.start();
+    server.setMessageCallback([](char *buf,int len){
+        printf("receive:%s\n",buf);
     });
     loop.loop();
 

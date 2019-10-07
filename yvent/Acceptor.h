@@ -13,7 +13,6 @@ class Acceptor:public noncopyable
 {
 public:
     typedef std::function<void (int cfd,
-                                const InetAddr& local,
                                 const InetAddr& peer)> NewConnectionCallback;
     Acceptor(EventLoop* loop, const InetAddr& host);
     ~Acceptor();

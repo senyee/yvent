@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <sys/epoll.h>
+#include <functional>
 #include "yvent/noncopyable.h"
 
 namespace yvent
@@ -11,6 +12,7 @@ class EventLoop;
 class Channel:public noncopyable
 {
 public:
+    typedef std::function<void()> EventCallBack;
     Channel(EventLoop * loop_, int fd);
     ~Channel();
 
@@ -29,6 +31,9 @@ public:
     void disableWrite() {events_ &= ~EPOLLOUT; update();}
     void disableAll() {events_ = 0; update();}
     void update();
+
+    void setReadCallback(EventCallBack cb) {readCallback_ = cb;}
+    void setWriteCallback(EventCallBack cb) {writeCallback_ = cb;}
 public:
     static const int kNew;
     static const int kAdded;
@@ -42,6 +47,8 @@ private:
     int events_;
     int revents_;
     int state_;
+    EventCallBack readCallback_;
+    EventCallBack writeCallback_;
 
 };
 

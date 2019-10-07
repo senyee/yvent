@@ -19,6 +19,7 @@ public:
         {return reinterpret_cast<const struct sockaddr *>(&addr_);}
     socklen_t getSockaddrLen() const
         {return sizeof(addr_);}
+    void setAddr(const struct sockaddr_in &addr);
 private:
     struct sockaddr_in addr_;
 

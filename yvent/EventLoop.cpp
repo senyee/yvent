@@ -44,8 +44,9 @@ bool EventLoop::isInLoopThread()
 void EventLoop::loop()
 {
     assert(isInLoopThread());
-    LOG_TRACE("tid_:%d,looping\n",tid_);
+    LOG_TRACE("tid_:%d,looping",tid_);
     while(!quit_) {
+        activeChannels_.clear();
         poll_.poll(activeChannels_);
         for (auto channel: activeChannels_) {
             channel->handleEvents();
@@ -55,7 +56,7 @@ void EventLoop::loop()
 
 void EventLoop::updateChannel(Channel* channel)
 {
-    LOG_TRACE("fd:%d\n", channel->fd());
+    LOG_TRACE("fd:%d", channel->fd());
     poll_.updateChannel(channel);
 }
 

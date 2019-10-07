@@ -15,9 +15,9 @@ Poll::Poll(EventLoop* loop)
     events_(128),
     epfd_( epoll_create1(0) )
 {
-    LOG_TRACE("epfd_:%d\n",epfd_);
+    LOG_TRACE("epfd_:%d",epfd_);
     if(-1 == epfd_) {
-        LOG_SYSFATAL("epfd_ creat failed\n");
+        LOG_SYSFATAL("epfd_ creat failed");
     }
 }
 Poll::~Poll()
@@ -27,21 +27,21 @@ Poll::~Poll()
 
 void Poll::poll(ChannelList& channelList)
 {
-    LOG_TRACE("poll...\n");
+    LOG_TRACE("poll...");
     int maxEvents = static_cast<int>(events_.size());
-    int n = epoll_wait(epfd_, events_.data(), maxEvents, 5*1000);
-    LOG_TRACE("poll %d events come\n", n);
+    int n = epoll_wait(epfd_, events_.data(), maxEvents, -1);
+    LOG_TRACE("poll %d events come", n);
     if(-1 == n) {
         if (errno != EINTR) {
-            LOG_SYSERR("Poll::EINTR\n");
+            LOG_SYSERR("Poll::EINTR");
         }
     } else if( 0 == n) {
-        LOG_DEBUG("Poll timeout\n");
+        LOG_DEBUG("Poll timeout");
     } else {
         for (int i = 0; i < n; i++) {
             Channel* channel = static_cast<Channel*>(events_[i].data.ptr);
             channel->setRevent(events_[i].events);
-            LOG_DEBUG("events: %d -> %d\n", channel->fd(), channel->revents());
+            LOG_DEBUG("events: %d -> %d", channel->fd(), channel->revents());
             channelList.push_back(channel);
         }
         if(n == maxEvents) {
@@ -55,7 +55,7 @@ void Poll::updateChannel(Channel* channel)
     assert(loop_->isInLoopThread());
     int op = 0;
     int state = channel->state();
-    LOG_TRACE("fd:%d, state:%d\n", channel->fd(), state);
+    LOG_TRACE("fd:%d, state:%d", channel->fd(), state);
     if(state == Channel::kNew) {
         assert(!channel->isNoEvent());
         op = EPOLL_CTL_ADD;
@@ -71,12 +71,12 @@ void Poll::updateChannel(Channel* channel)
 
 void Poll::update(int op, Channel* channel)
 {
-    LOG_TRACE("op:%d,fd:%d\n", op, channel->fd());
+    LOG_TRACE("op:%d,fd:%d", op, channel->fd());
     struct epoll_event ev;
     ev.events = channel->events();
     ev.data.ptr = channel;
     int ret = ::epoll_ctl(epfd_, op, channel->fd(), &ev);
     if(-1 == ret) {
-        LOG_SYSERR("epoll_ctl err\n");
+        LOG_SYSERR("epoll_ctl err");
     }
 }

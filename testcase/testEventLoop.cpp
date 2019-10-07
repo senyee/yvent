@@ -1,5 +1,7 @@
 #include <iostream>
 #include <thread>
+#include <stdio.h>
+#include <unistd.h>
 #include "yvent/EventLoop.h"
 #include "yvent/Channel.h"
 #include "yvent/InetAddr.h"
@@ -43,6 +45,11 @@ TEST_F(EventLoopTest, loop) {
    std::thread loopThread([](){
         yvent::EventLoop loop;
         yvent::Channel channel(&loop, 0);
+        channel.setReadCallback([](){
+            char buf[BUFSIZ] = {0};
+            read(0,buf,BUFSIZ);
+            printf("%s copy\n",buf);
+        });
         channel.enableRead();
         ASSERT_TRUE(loop.isInLoopThread());
         //loop.loop();
@@ -67,7 +74,22 @@ TEST_F(EventLoopTest, listen) {
     InetAddr host(1234);
     Acceptor acceptor(&loop, host);
     acceptor.listen();
+    //loop.loop();
+}
+
+TEST(Acceptor,newConnectionCallback) {
+    EventLoop loop;
+    ASSERT_TRUE(loop.isInLoopThread());
+
+    InetAddr host(1234);
+    Acceptor acceptor(&loop, host);
+    acceptor.listen();
+    acceptor.setNewConnectionCallback([](int cfd, const InetAddr &local, const InetAddr &peer){
+        ::write(cfd, "hello\n", 7);
+        ::close(cfd);
+    });
     loop.loop();
+
 }
 
 }  // namespace

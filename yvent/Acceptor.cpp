@@ -1,4 +1,5 @@
 #include <cassert>
+#include <unistd.h>
 #include "Logging.h"
 #include "Acceptor.h"
 #include "Socket.h"
@@ -20,13 +21,45 @@ Acceptor::Acceptor(EventLoop* loop, const InetAddr& host)
 
 Acceptor::~Acceptor()
 {
-
+    ::close(lfd_);
 }
 
 void Acceptor::listen()
 {
-    LOG_TRACE("listen...\n");
+    LOG_TRACE("listen...");
     assert(loop_->isInLoopThread());
     sockets::Listen(lfd_,SOMAXCONN);
+    acceptChannel_.setReadCallback(std::bind(&Acceptor::handleRead,this));
     acceptChannel_.enableRead();
+}
+
+void Acceptor::handleRead()
+{
+    LOG_TRACE("new connection");
+    assert(loop_->isInLoopThread());
+    struct sockaddr_in addr;
+    socklen_t len = sizeof(addr);
+
+    void *any = &addr;
+    int cfd = ::accept4(lfd_, static_cast<sockaddr*>(any),
+                           &len, SOCK_NONBLOCK | SOCK_CLOEXEC);
+    if (cfd == -1) {
+        int savedErrno = errno;
+        LOG_SYSERR("accept4()");
+        switch (savedErrno) {
+            case ECONNABORTED:
+            case EMFILE:
+                break;
+            default:
+                LOG_FATAL("unexpected accept4() error");
+        }
+    } else {
+        InetAddr inetAddrPeer(0);
+        inetAddrPeer.setAddr(addr);
+        if(newConnectionCallback_) {
+            newConnectionCallback_(cfd, host_, inetAddrPeer);
+        } else {
+            ::close(cfd);
+        }
+    }
 }

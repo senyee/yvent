@@ -26,7 +26,7 @@ Acceptor::~Acceptor()
 
 void Acceptor::listen()
 {
-    LOG_TRACE("listen...");
+    LOG_TRACE("listen at %s:%d", host_.ip().c_str(), host_.port());
     assert(loop_->isInLoopThread());
     sockets::Listen(lfd_,SOMAXCONN);
     acceptChannel_.setReadCallback(std::bind(&Acceptor::handleRead,this));

@@ -1,7 +1,7 @@
 #ifndef YVENT_TCPSERVER_H
 #define YVENT_TCPSERVER_H
 #include <memory>
-#include <set>
+#include <map>
 #include "InetAddr.h"
 #include "Acceptor.h"
 #include "Callbacks.h"
@@ -11,7 +11,7 @@ namespace yvent
 {
 
 class EventLoop;
-class TcpServer
+class TcpServer:public noncopyable
 {
 public:
     typedef std::shared_ptr<TcpConnection> TcpConnectionSptr;
@@ -23,13 +23,16 @@ public:
         {messageCallback_ = cb;}
 private:
     void newConnection(int cfd, const InetAddr &peer);
+    void handleClose(const TcpConnectionPtr&);
 
 private:
+    typedef std::map<std::string,TcpConnectionSptr> ConnectionMap;
     EventLoop *loop_;
     InetAddr host_;
+    int nextConnId_;
     Acceptor acceptor_;
     MessageCallback messageCallback_;
-    std::set<TcpConnectionSptr> connSet_;
+    ConnectionMap connections_;
 };
 
 

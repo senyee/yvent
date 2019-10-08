@@ -10,7 +10,10 @@ using std::placeholders::_3;
 using std::placeholders::_4;
 using std::placeholders::_5;
 
+class TcpConnection;
+typedef std::shared_ptr<TcpConnection> TcpConnectionPtr;
 typedef std::function<void(char *buf, int len)> MessageCallback;
+typedef std::function<void (const TcpConnectionPtr&)> CloseCallback;
 } // namespace yvent
 
 #endif //YVENT_CALLBACKS_H

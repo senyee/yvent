@@ -1,15 +1,22 @@
 #include <unistd.h>
+#include <cassert>
 #include "TcpConnection.h"
+#include "Logging.h"
+#include "EventLoop.h"
+#include "Channel.h"
 using namespace yvent;
 
-TcpConnection::TcpConnection(EventLoop *loop, int cfd, const InetAddr &local, const InetAddr &peer)
+TcpConnection::TcpConnection(EventLoop *loop, const std::string &name,
+                            int cfd, const InetAddr &local, const InetAddr &peer)
         :loop_(loop),
+        name_(name),
         cfd_(cfd),
         local_(local),
         peer_(peer),
         channel_(loop, cfd)
 {
     channel_.setReadCallback([this](){this->handleRead();});
+    channel_.setCloseCallback([this](){this->handleClose();});
 }
 
 TcpConnection::~TcpConnection()
@@ -25,9 +32,21 @@ void TcpConnection::enableRead()
 void TcpConnection::handleRead()
 {
     char buf[BUFSIZ] = {0};
-    ::read(cfd_, buf, BUFSIZ);
-    if(messageCallback_) {
+    ssize_t n = ::read(cfd_, buf, BUFSIZ);
+    if(-1 == n) {
+
+    } else if(0 == n) {
+        handleClose();
+    } else if(messageCallback_) {
         messageCallback_(buf, BUFSIZ);
     }
+}
+
+void TcpConnection::handleClose()
+{
+    assert(loop_->isInLoopThread());
+    LOG_TRACE("closed:%s", name_.c_str());
+    channel_.disableAll();
+    if(closeCallback_) closeCallback_(shared_from_this());
 }
 

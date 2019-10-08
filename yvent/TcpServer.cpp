@@ -10,6 +10,7 @@ using namespace yvent;
 TcpServer::TcpServer(EventLoop *loop, const InetAddr &host)
         :loop_(loop),
         host_(host),
+        nextConnId_(0),
         acceptor_(loop, host)
 {
     acceptor_.setNewConnectionCallback(std::bind(&TcpServer::newConnection, this, _1, _2));
@@ -27,8 +28,19 @@ void TcpServer::start()
 void TcpServer::newConnection(int cfd, const InetAddr &peer)
 {
     LOG_TRACE("cfd=%d", cfd);
-    std::shared_ptr<TcpConnection> conn(new TcpConnection(loop_, cfd, host_, peer) );
+    char namebuf[128] = {0};
+    snprintf(namebuf, 128, "%s:%d#%d",peer.ip().c_str(),peer.port(),nextConnId_);
+    LOG_TRACE("newConnection:%s", namebuf);
+    ++nextConnId_;
+    std::string name(namebuf);
+    std::shared_ptr<TcpConnection> conn(new TcpConnection(loop_, name, cfd, host_, peer) );
     conn->setReadCallback(messageCallback_);
+    conn->setCloseCallback([this](const TcpConnectionPtr &tcpConnectionPtr){this->handleClose(tcpConnectionPtr);});
     conn->enableRead();
-    connSet_.insert(conn);
+    connections_[name] = conn;
+}
+
+void TcpServer::handleClose(const TcpConnectionPtr &tcpConnectionPtr)
+{
+    connections_.erase(tcpConnectionPtr->name());
 }

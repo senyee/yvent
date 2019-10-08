@@ -35,3 +35,15 @@ void InetAddr::setAddr(const struct sockaddr_in &addr)
     addr_ = addr;
 }
 
+uint16_t InetAddr::port() const
+{
+    return ntohs(addr_.sin_port);
+}
+
+std::string InetAddr::ip() const
+{
+    char ip[BUFSIZ] = {0};
+    ::inet_ntop(AF_INET, &addr_.sin_addr.s_addr, ip, BUFSIZ);
+    return std::string(ip);
+}
+

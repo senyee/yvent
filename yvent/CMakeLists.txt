@@ -5,6 +5,8 @@ set(SOURCE_FILES
         Acceptor.cpp
         InetAddr.cpp
         Socket.cpp
+        TcpServer.cpp
+        TcpConnection.cpp
         )
 
 add_library(yvent STATIC ${SOURCE_FILES})
@@ -20,5 +22,8 @@ set(HEADERS
         Acceptor.h
         InetAddr.h
         Socket.h
+        TcpServer.h
+        Callbacks.h
+        TcpConnection.h
         )
 install(FILES ${HEADERS} DESTINATION include)

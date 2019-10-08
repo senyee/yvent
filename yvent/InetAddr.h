@@ -20,6 +20,8 @@ public:
     socklen_t getSockaddrLen() const
         {return sizeof(addr_);}
     void setAddr(const struct sockaddr_in &addr);
+    uint16_t port() const;
+    std::string ip() const;
 private:
     struct sockaddr_in addr_;
 

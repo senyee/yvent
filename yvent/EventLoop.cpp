@@ -27,7 +27,8 @@ EventLoop::EventLoop()
           poll_(this),
           wakeupfd_( ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC) ),
           runningTasks_(false),
-          channel_(this, wakeupfd_)
+          channel_(this, wakeupfd_),
+          looping_(false)
 {
     if(wakeupfd_ < 0) {
         LOG_TRACE("eventfd() err");
@@ -54,6 +55,8 @@ bool EventLoop::isInLoopThread()
 void EventLoop::loop()
 {
     assert(isInLoopThread());
+    assert(false == looping_);
+    looping_ = true;
     LOG_TRACE("tid_:%d,looping",tid_);
     while(!quit_) {
         activeChannels_.clear();
@@ -63,6 +66,7 @@ void EventLoop::loop()
         }
         runTasks();
     }
+    looping_ = false;
     LOG_TRACE("quit");
 }
 

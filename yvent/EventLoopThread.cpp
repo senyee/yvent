@@ -1,6 +1,7 @@
 #include <cassert>
 #include "EventLoopThread.h"
 #include "EventLoop.h"
+#include "Logging.h"
 using namespace yvent;
 
 EventLoopThread::EventLoopThread(const ThreadInitCallback &cb)
@@ -15,11 +16,12 @@ EventLoopThread::EventLoopThread(const ThreadInitCallback &cb)
 
 EventLoopThread::~EventLoopThread()
 {
+    LOG_TRACE(" ");
     if(start_) {
         if(loop_) {
             loop_->quit();
         }
-    thread_.join();
+        thread_.join();
     }
 }
 

@@ -41,6 +41,7 @@ private:
     std::mutex mutex_;
     std::atomic_bool runningTasks_;
     Channel channel_;
+    bool looping_;
 };
 
 }//namespace yvent

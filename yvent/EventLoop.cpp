@@ -24,10 +24,20 @@ pid_t gettid()
 EventLoop::EventLoop()
         : tid_(gettid()),
           quit_(false),
-          poll_(this)
+          poll_(this),
+          wakeupfd_( ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC) ),
+          runningTasks_(false),
+          channel_(this, wakeupfd_)
 {
+    if(wakeupfd_ < 0) {
+        LOG_TRACE("eventfd() err");
+        abort();
+    }
     assert(t_Eventloop == nullptr);
     t_Eventloop = this;
+
+    channel_.setReadCallback([this](){this->handleRead();});
+    channel_.enableRead();
 }
 
 EventLoop::~EventLoop()
@@ -51,6 +61,7 @@ void EventLoop::loop()
         for (auto channel: activeChannels_) {
             channel->handleEvents();
         }
+        runTasks();
     }
 }
 
@@ -64,3 +75,62 @@ void EventLoop::quit()
 {
     quit_ = true;
 }
+
+void EventLoop::runInLoop(const Task &task)
+{
+    LOG_TRACE(" ");
+    if(isInLoopThread()) {
+        task();
+    } else {
+        addTask(task);
+    }
+}
+
+void EventLoop::addTask(const Task &task)
+{
+    LOG_TRACE("addtask...");
+    {
+        std::lock_guard<std::mutex> guard(mutex_);
+        tasks_.push_back(task);
+    }
+    if(!isInLoopThread() || runningTasks_) {
+        wakeup();
+    }
+}
+
+void EventLoop::wakeup()
+{
+    LOG_TRACE("wakeup...");
+    uint64_t up = 1;
+    ssize_t n = ::write(wakeupfd_, &up, sizeof(up));
+    if(sizeof(up) != n) {
+        LOG_SYSERR("write err:%ld", n);
+    }
+}
+
+void EventLoop::runTasks()
+{
+    LOG_TRACE("runTasks...");
+    std::vector<Task> tasks;
+    runningTasks_ = true;
+    {
+        std::lock_guard<std::mutex> guard(mutex_);
+        tasks_.swap(tasks);
+    }
+    for(auto &task : tasks) {
+        task();
+    }
+    runningTasks_ = false;
+}
+
+void EventLoop::handleRead()
+{
+    uint64_t one;
+    ssize_t n = ::read(wakeupfd_, &one, sizeof(one));
+    LOG_TRACE("%ld", n);
+    if(sizeof(one) != n) {
+        LOG_SYSERR("read err:%ld", n);
+    }
+}
+
+

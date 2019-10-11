@@ -103,7 +103,20 @@ TEST(TcpServer,newConnectionCallback) {
     server.setMessageCallback([](char *buf,int len){
         printf("receive:%s\n",buf);
     });
+    //loop.loop();
+
+}
+
+TEST(EventLoop,runInLoop) {
+    EventLoop loop;
+    ASSERT_TRUE(loop.isInLoopThread());
+    std::thread loopThread([&](){
+        loop.runInLoop([](){printf("hello world\n");});
+    });
     loop.loop();
+
+    loopThread.join();
+    
 
 }
 

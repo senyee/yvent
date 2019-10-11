@@ -7,6 +7,7 @@
 #include "yvent/InetAddr.h"
 #include "yvent/Acceptor.h"
 #include "yvent/TcpServer.h"
+#include "yvent/EventLoopThread.h"
 #include "gtest/gtest.h"
 using namespace yvent;
 namespace {
@@ -113,10 +114,21 @@ TEST(EventLoop,runInLoop) {
     std::thread loopThread([&](){
         loop.runInLoop([](){printf("hello world\n");});
     });
-    loop.loop();
+    //loop.loop();
 
     loopThread.join();
     
+
+}
+
+TEST(EventLoopThread,loopThread) {
+    EventLoopThread loopthread(nullptr);
+    EventLoop *loop = loopthread.starLoop();
+    ASSERT_TRUE(nullptr != loop);
+    loop->runInLoop([](){printf("hello world\n");});
+    
+
+    sleep(5);
 
 }
 

@@ -63,6 +63,7 @@ void EventLoop::loop()
         }
         runTasks();
     }
+    LOG_TRACE("quit");
 }
 
 void EventLoop::updateChannel(Channel* channel)
@@ -73,7 +74,11 @@ void EventLoop::updateChannel(Channel* channel)
 
 void EventLoop::quit()
 {
+    LOG_TRACE(" ");
     quit_ = true;
+    if(!isInLoopThread()) {
+        wakeup();
+    }
 }
 
 void EventLoop::runInLoop(const Task &task)

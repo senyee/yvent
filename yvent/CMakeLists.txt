@@ -7,6 +7,7 @@ set(SOURCE_FILES
         Socket.cpp
         TcpServer.cpp
         TcpConnection.cpp
+        EventLoopThread.cpp
         )
 
 add_library(yvent STATIC ${SOURCE_FILES})
@@ -25,5 +26,6 @@ set(HEADERS
         TcpServer.h
         Callbacks.h
         TcpConnection.h
+        EventLoopThread.h
         )
 install(FILES ${HEADERS} DESTINATION include)

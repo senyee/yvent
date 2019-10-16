@@ -45,6 +45,7 @@ EventLoop::~EventLoop()
 {
     assert(t_Eventloop == this);
     t_Eventloop = nullptr;
+    ::close(wakeupfd_);
 }
 
 bool EventLoop::isInLoopThread()

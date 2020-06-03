@@ -8,6 +8,8 @@ set(SOURCE_FILES
         TcpServer.cpp
         TcpConnection.cpp
         EventLoopThread.cpp
+        Timer.cpp
+        TimerQueue.cpp
         )
 
 add_library(yvent STATIC ${SOURCE_FILES})
@@ -27,5 +29,7 @@ set(HEADERS
         Callbacks.h
         TcpConnection.h
         EventLoopThread.h
+        Timer.h
+        TimerQueue.h
         )
 install(FILES ${HEADERS} DESTINATION include)

@@ -121,15 +121,15 @@ TEST(EventLoop,runInLoop) {
 
 }
 
-TEST(EventLoopThread,loopThread) {
-    EventLoopThread loopthread(nullptr);
-    EventLoop *loop = loopthread.starLoop();
-    ASSERT_TRUE(nullptr != loop);
-    loop->runInLoop([](){printf("hello world\n");});
+// TEST(EventLoopThread,loopThread) {
+//     EventLoopThread loopthread(nullptr);
+//     EventLoop *loop = loopthread.starLoop();
+//     ASSERT_TRUE(nullptr != loop);
+//     loop->runInLoop([](){printf("hello world\n");});
     
 
-    sleep(5);
+//     //sleep(5);
 
-}
+// }
 
 }  // namespace

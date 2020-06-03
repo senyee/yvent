@@ -32,6 +32,7 @@ endif()
 
 set(SOURCE_FILES
         testEventLoop.cpp
+        testTimerQueue.cpp
         )
 add_executable(target ${SOURCE_FILES})
 target_link_libraries(target yvent gtest_main)

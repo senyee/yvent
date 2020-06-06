@@ -25,6 +25,7 @@ TEST(TimerQueueTest, timer) {
     channel.enableRead();
     ::timerfd_settime(timerfd, 0, &newTime, NULL);
     //loop.loop();
+    ::close(timerfd);
 
 }
 
@@ -74,7 +75,7 @@ TEST(TimerQueueTest, TimerCancel) {
             }
         },
         1s );
-    //10s 后强制推出loop，检查time值，来检查timer是否取消
+    //10s 后强制退出loop，检查time值，来检查timer是否取消
     std::thread breakThread([&](){
         sleep(10);
         loop.quit();
@@ -83,5 +84,67 @@ TEST(TimerQueueTest, TimerCancel) {
     EXPECT_EQ(time, 5);
     breakThread.join();
 }
+
+TEST(TimerQueueTest, EventLoopTimerOnce) {
+    EventLoop loop;
+    int time = 0;
+    loop.runAt(TimePoint::clock::now() + 1s,
+        [&](){
+            printf("timeout\n");
+            time = 1;
+            loop.quit();
+        });
+    loop.loop();
+    EXPECT_EQ(time, 1);
+}
+
+TEST(TimerQueueTest, EventLoopTimerAfter) {
+    EventLoop loop;
+    int time = 0;
+    loop.runAfter(1s,
+        [&](){
+            printf("timeout\n");
+            time = 1;
+            loop.quit();
+        });
+    loop.loop();
+    EXPECT_EQ(time, 1);
+}
+
+TEST(TimerQueueTest, EventLoopTimerRepeat) {
+    EventLoop loop;
+    static int time = 0;
+    loop.runEvery( 1s,
+        [&](){
+            printf("timeout\n");
+            time ++;
+            if(5 == time)
+                loop.quit();
+        });
+    loop.loop();
+    EXPECT_EQ(time, 5);
+}
+
+TEST(TimerQueueTest, EventLoopTimerCancel) {
+    EventLoop loop;
+    static int time = 0;
+    TimerId timerId = loop.runEvery(1s,
+        [&](){
+            printf("timeout\n");
+            time ++;
+            if(5 == time) {
+                loop.cancelTimer(timerId);
+            }
+        });
+    //10s 后强制退出loop，检查time值，来检查timer是否取消
+    std::thread breakThread([&](){
+        sleep(10);
+        loop.quit();
+    });
+    loop.loop();
+    EXPECT_EQ(time, 5);
+    breakThread.join();
+}
+
 
 

@@ -39,6 +39,16 @@ private:
     bool canceled_;
 };
 
+class TimerId
+{
+public:
+    TimerId(Timer *timer) {timer_ = timer;}
+    TimerId(const TimerId &timerId) {timer_ = timerId.timer_;}
+    Timer *timer() const { return timer_; }
+private:
+    Timer *timer_;
+};
+
 } // namespace yvent
 
 

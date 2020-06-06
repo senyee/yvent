@@ -8,6 +8,7 @@
 #include "noncopyable.h"
 #include "Poll.h"
 #include "Channel.h"
+#include "TimerQueue.h"
 namespace yvent
 {
 class Poll;
@@ -24,9 +25,12 @@ public:
     void quit();
     void runInLoop(const Task &task);
     void addTask(const Task &task);
-
-public:
     void wakeup();
+
+    TimerId runAt(TimePoint when, TimerCallback cb);
+    TimerId runAfter(Interval interval, TimerCallback cb);
+    TimerId runEvery(Interval interval, TimerCallback cb);
+    void cancelTimer(TimerId timerId);
 private:
     void runTasks();
     void handleRead();
@@ -42,6 +46,7 @@ private:
     std::atomic_bool runningTasks_;
     Channel channel_;
     bool looping_;
+    TimerQueue timerQueue_;
 };
 
 }//namespace yvent

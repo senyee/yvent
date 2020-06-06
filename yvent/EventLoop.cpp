@@ -28,7 +28,8 @@ EventLoop::EventLoop()
           wakeupfd_( ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC) ),
           runningTasks_(false),
           channel_(this, wakeupfd_),
-          looping_(false)
+          looping_(false),
+          timerQueue_(this)
 {
     if(wakeupfd_ < 0) {
         LOG_TRACE("eventfd() err");
@@ -143,4 +144,27 @@ void EventLoop::handleRead()
     }
 }
 
+TimerId EventLoop::runAt(TimePoint when, TimerCallback cb)
+{
+    return timerQueue_.addTimer(when, cb, 0s);
+}
+
+TimerId EventLoop::runAfter(Interval interval, TimerCallback cb)
+{
+    return timerQueue_.addTimer(TimePoint::clock::now() + interval,
+                                cb,
+                                0s);
+}
+
+TimerId EventLoop::runEvery(Interval interval, TimerCallback cb)
+{
+    return timerQueue_.addTimer(TimePoint::clock::now() + interval,
+                                cb,
+                                interval);
+}
+
+void EventLoop::cancelTimer(TimerId timerId)
+{
+    return timerQueue_.cancelTimer(timerId.timer());
+}
 

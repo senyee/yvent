@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/timerfd.h>
+#include <thread>
 #include "yvent/EventLoop.h"
 #include "yvent/Logging.h"
 #include "yvent/Channel.h"
@@ -27,11 +28,60 @@ TEST(TimerQueueTest, timer) {
 
 }
 
-TEST(TimerQueueTest, tq) {
+TEST(TimerQueueTest, TimerOnce) {
     EventLoop loop;
     TimerQueue tq(&loop);
-
-    tq.addTimer(std::chrono::system_clock::now() + 5s,[](){printf("timeout\n");}, 5s );
-    //loop.loop();
+    int time = 0;
+    tq.addTimer(std::chrono::system_clock::now() + 1s,
+        [&](){
+            printf("timeout\n");
+            time = 1;
+            loop.quit();
+        },
+        0s );
+    loop.loop();
+    EXPECT_EQ(time, 1);
 }
+
+TEST(TimerQueueTest, TimerRepeat) {
+    EventLoop loop;
+    TimerQueue tq(&loop);
+    static int time = 0;
+    tq.addTimer(std::chrono::system_clock::now() + 1s,
+        [&](){
+            printf("timeout\n");
+            time ++;
+            if(5 == time)
+                loop.quit();
+        },
+        1s );
+    loop.loop();
+    EXPECT_EQ(time, 5);
+}
+
+TEST(TimerQueueTest, TimerCancel) {
+    EventLoop loop;
+    TimerQueue tq(&loop);
+    static int time = 0;
+    Timer* timer = nullptr;
+    timer = tq.addTimer(std::chrono::system_clock::now() + 1s,
+        [&](){
+            printf("timeout\n");
+            time ++;
+            if(5 == time) {
+                EXPECT_NE(timer, nullptr);
+                tq.cancelTimer(timer);
+            }
+        },
+        1s );
+    //10s 后强制推出loop，检查time值，来检查timer是否取消
+    std::thread breakThread([&](){
+        sleep(10);
+        loop.quit();
+    });
+    loop.loop();
+    EXPECT_EQ(time, 5);
+    breakThread.join();
+}
+
 

@@ -14,6 +14,7 @@ public:
     TimerQueue(EventLoop *loop);
     ~TimerQueue();
     Timer* addTimer(const TimePoint &when, TimerCallback timerCallback, Interval interval);
+    void cancelTimer(Timer* timer);
 private:
     typedef std::pair<TimePoint, Timer*> TimerEntry;
     void setTimer(const TimePoint &when);

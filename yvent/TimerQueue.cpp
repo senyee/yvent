@@ -68,10 +68,21 @@ void TimerQueue::handleRead()
     
     for (auto& e: getExpired()) {
         Timer* timer = e.second;
-        timer->run();
-        delete timer;
+        if(timer->canceled()) {
+            delete timer;
+        } else {
+            timer->run();
+            if(timer->repeat()) {
+                timer->restart();
+                e.first = timer->when();
+                timers_.insert(e);
+            } else {
+                delete timer;
+            }
+        }
     }
-    
+    if(!timers_.empty())
+        this->setTimer(timers_.begin()->first);
 }
 
 std::vector<TimerQueue::TimerEntry> TimerQueue::getExpired()
@@ -87,4 +98,20 @@ std::vector<TimerQueue::TimerEntry> TimerQueue::getExpired()
 
     return entries;
 
+}
+
+//TODO:
+//1用户持有的可能是一个已经过期的timer指针
+//2无法区分先后两个周期和地址都是一样的timer
+void TimerQueue::cancelTimer(Timer* timer)
+{
+    loop_->runInLoop([this, timer](){
+        timer->cancel();
+        auto it = timers_.find({timer->when(), timer});
+        if(it != timers_.end()) {
+            LOG_INFO("cancel timer %p", timer);
+            timers_.erase(it);
+            delete timer;
+        }
+    });
 }

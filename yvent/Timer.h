@@ -26,10 +26,17 @@ public:
     Timer(TimePoint when, const TimerCallback &timerCallback, Interval interval);
     ~Timer();
     void run() {if(timerCallback_) timerCallback_();}
+    void restart();
+    bool repeat() const { return repeat_; }
+    void cancel();
+    bool canceled() const { return canceled_;}
+    TimePoint when() const { return when_;}
 private:
     TimePoint when_;
     TimerCallback timerCallback_;
     Interval interval_;
+    bool repeat_;
+    bool canceled_;
 };
 
 } // namespace yvent

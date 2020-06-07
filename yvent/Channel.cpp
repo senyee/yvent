@@ -29,10 +29,11 @@ void Channel::handleEvents()
     LOG_TRACE("revents_=%d",revents_);
     assert(loop_->isInLoopThread());
     if ((revents_ & EPOLLHUP) && !(revents_ & EPOLLIN)) {
-
+        LOG_TRACE("EPOLLHUP");
+        if(closeCallback_) closeCallback_();
     }
     if (revents_ & EPOLLERR) {
-        
+        if(errorCallback_) errorCallback_();
     }
     if (revents_ & (EPOLLIN | EPOLLPRI | EPOLLRDHUP)) {
         if (readCallback_) readCallback_();

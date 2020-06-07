@@ -35,6 +35,7 @@ public:
     void setReadCallback(const EventCallBack &cb) {readCallback_ = cb;}
     void setWriteCallback(const EventCallBack &cb) {writeCallback_ = cb;}
     void setCloseCallback(const EventCallBack &cb) {closeCallback_ = cb;}
+    void setErrorCallback(const EventCallBack &cb) {errorCallback_ = cb;}
 public:
     static const int kNew;
     static const int kAdded;
@@ -51,7 +52,7 @@ private:
     EventCallBack readCallback_;
     EventCallBack writeCallback_;
     EventCallBack closeCallback_;
-
+    EventCallBack errorCallback_;
 };
 
 } // namespace yvent

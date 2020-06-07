@@ -24,9 +24,11 @@ public:
         {closeCallback_ = cb;}
     std::string name() const
         {return name_;}
+    void closeConnection();
 private:
     void handleRead();
     void handleClose();
+    void handleError();
 private:
     EventLoop *loop_;
     std::string name_;

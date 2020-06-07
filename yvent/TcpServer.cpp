@@ -42,5 +42,6 @@ void TcpServer::newConnection(int cfd, const InetAddr &peer)
 
 void TcpServer::handleClose(const TcpConnectionPtr &tcpConnectionPtr)
 {
+    LOG_INFO("close %s",tcpConnectionPtr->name().c_str());
     connections_.erase(tcpConnectionPtr->name());
 }

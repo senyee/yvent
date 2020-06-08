@@ -6,6 +6,7 @@
 #include "InetAddr.h"
 #include "Channel.h"
 #include "TcpConnection.h"
+#include "Buffer.h"
 namespace yvent
 {
 
@@ -38,6 +39,7 @@ private:
     Channel channel_;
     MessageCallback messageCallback_;
     CloseCallback   closeCallback_;
+    Buffer inBuffer_;
 };
 
 } // namespace yvent

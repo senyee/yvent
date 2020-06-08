@@ -11,8 +11,9 @@ using std::placeholders::_4;
 using std::placeholders::_5;
 
 class TcpConnection;
+class Buffer;
 typedef std::shared_ptr<TcpConnection> TcpConnectionPtr;
-typedef std::function<void(char *buf, int len)> MessageCallback;
+typedef std::function<void(const TcpConnectionPtr&, Buffer* buffer)> MessageCallback;
 typedef std::function<void (const TcpConnectionPtr&)> CloseCallback;
 typedef std::function<void()> TimerCallback;
 } // namespace yvent

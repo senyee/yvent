@@ -32,14 +32,15 @@ void TcpConnection::enableRead()
 
 void TcpConnection::handleRead()
 {
-    char buf[BUFSIZ] = {0};
-    ssize_t n = ::read(cfd_, buf, BUFSIZ);
+    int savedErrno;
+    ssize_t n = inBuffer_.readFd(cfd_, &savedErrno);
     if(-1 == n) {
-
+        errno = savedErrno;
+        LOG_SYSERR("errno = %d", savedErrno);
     } else if(0 == n) {
         handleClose();
     } else if(messageCallback_) {
-        messageCallback_(buf, BUFSIZ);
+        messageCallback_(shared_from_this(), &inBuffer_);
     }
 }
 

@@ -29,7 +29,7 @@ public:
         { return readerIndex_; }
 
     const char *peek() const
-        { return buffer_.data() + readerIndex_; }
+        { return begin() + readerIndex_; }
 
     void append(const void* data, size_t len)
     {
@@ -53,7 +53,7 @@ public:
 
     char *beginWrite()
     {
-        return buffer_.data() + writerIndex_;
+        return begin() + writerIndex_;
     }
 
     void hasWritten(size_t len)
@@ -89,7 +89,19 @@ public:
     {
         return retrieveAsString(readableBytes());
     }
+
+    ssize_t readFd(int fd, int* savedErrno);
 private:
+    char *begin()
+    {
+        return buffer_.data();
+    }
+
+    const char *begin() const
+    {
+        return buffer_.data();
+    }
+
     void makeSpace(size_t len)
     {
         if(writableBytes() + prependableBytes() < len + kCheapPrepend) {
@@ -97,9 +109,9 @@ private:
         } else {
             assert(kCheapPrepend < readerIndex_);
             size_t readable = readableBytes();
-            std::copy(buffer_.data() + readerIndex_,
-                      buffer_.data() + writerIndex_,
-                      buffer_.data() + kCheapPrepend);
+            std::copy(begin() + readerIndex_,
+                      begin() + writerIndex_,
+                      begin() + kCheapPrepend);
             readerIndex_ = kCheapPrepend;
             writerIndex_ = readerIndex_ + readable;
             assert(readable == readableBytes());

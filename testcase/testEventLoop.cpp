@@ -94,20 +94,6 @@ TEST_F(EventLoopTest, listen) {
 
 // }
 
-TEST(TcpServer,newConnectionCallback) {
-    EventLoop loop;
-    ASSERT_TRUE(loop.isInLoopThread());
-
-    InetAddr host(1234);
-    TcpServer server(&loop, host);
-    server.start();
-    server.setMessageCallback([](char *buf,int len){
-        printf("receive:%s\n",buf);
-    });
-    //loop.loop();
-
-}
-
 TEST(EventLoop,runInLoop) {
     EventLoop loop;
     ASSERT_TRUE(loop.isInLoopThread());

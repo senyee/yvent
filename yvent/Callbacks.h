@@ -14,7 +14,8 @@ class TcpConnection;
 class Buffer;
 typedef std::shared_ptr<TcpConnection> TcpConnectionPtr;
 typedef std::function<void(const TcpConnectionPtr&, Buffer* buffer)> MessageCallback;
-typedef std::function<void (const TcpConnectionPtr&)> CloseCallback;
+typedef std::function<void(const TcpConnectionPtr&)> CloseCallback;
+typedef std::function<void(const TcpConnectionPtr&)> WriteCompleteCallback;
 typedef std::function<void()> TimerCallback;
 } // namespace yvent
 

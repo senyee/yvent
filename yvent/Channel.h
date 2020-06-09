@@ -36,6 +36,9 @@ public:
     void setWriteCallback(const EventCallBack &cb) {writeCallback_ = cb;}
     void setCloseCallback(const EventCallBack &cb) {closeCallback_ = cb;}
     void setErrorCallback(const EventCallBack &cb) {errorCallback_ = cb;}
+
+    bool isReading() const { return events_ & EPOLLIN; }
+    bool isWriting() const { return events_ & EPOLLOUT; }
 public:
     static const int kNew;
     static const int kAdded;

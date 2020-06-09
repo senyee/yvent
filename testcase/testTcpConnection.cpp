@@ -55,4 +55,19 @@ TEST_F(TcpConnectionTest,Message) {
     //loop.loop();
 }
 
+TEST_F(TcpConnectionTest,SendMessage) {
+    EventLoop loop;
+    ASSERT_TRUE(loop.isInLoopThread());
+
+    InetAddr host(1234);
+    TcpServer server(&loop, host);
+    server.start();
+    server.setMessageCallback([](const TcpConnectionPtr& conn, Buffer* buffer ) {
+        conn->send(buffer->retrieveAllAsString());
+        conn->shutdown();
+    });
+    //loop.loop();
+}
+
+
 }  // namespace

@@ -8,6 +8,7 @@
 #include "yvent/Acceptor.h"
 #include "yvent/TcpServer.h"
 #include "yvent/TcpConnection.h"
+#include "yvent/Connector.h"
 #include "gtest/gtest.h"
 using namespace yvent;
 namespace {
@@ -69,5 +70,17 @@ TEST_F(TcpConnectionTest,SendMessage) {
     //loop.loop();
 }
 
+TEST_F(TcpConnectionTest,Connector) {
+    EventLoop loop;
+    ASSERT_TRUE(loop.isInLoopThread());
+    InetAddr host(1234);
+    Connector connector(&loop, host);
+    connector.setNewConnectionCallback([&](const int cfd,const InetAddr& peer){
+        std::cout << peer.ip() << ":" << peer.port() << std::endl;
+    });
+    connector.start();
+    //netcat -l -p 1234
+    //loop.loop();
+}
 
 }  // namespace

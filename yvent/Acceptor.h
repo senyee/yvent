@@ -4,6 +4,7 @@
 #include "noncopyable.h"
 #include "InetAddr.h"
 #include "Channel.h"
+#include "Callbacks.h"
 namespace yvent
 {
 
@@ -12,8 +13,6 @@ class InetAddr;
 class Acceptor:public noncopyable
 {
 public:
-    typedef std::function<void (int cfd,
-                                const InetAddr& peer)> NewConnectionCallback;
     Acceptor(EventLoop* loop, const InetAddr& host);
     ~Acceptor();
 

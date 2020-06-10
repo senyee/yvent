@@ -4,7 +4,7 @@ using namespace yvent;
 
 int sockets::Socket (int domain, int type, int protocol)
 {
-    int ret = ::socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
+    int ret = ::socket(domain, type, protocol);
     if (ret == -1)
         LOG_SYSFATAL("Acceptor::socket() err");
     return ret;

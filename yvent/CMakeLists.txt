@@ -11,6 +11,8 @@ set(SOURCE_FILES
         Timer.cpp
         TimerQueue.cpp
         Buffer.cpp
+        Connector.cpp
+        EventLoopThreadPool.cpp
         )
 
 add_library(yvent STATIC ${SOURCE_FILES})
@@ -33,5 +35,7 @@ set(HEADERS
         Timer.h
         TimerQueue.h
         Buffer.h
+        Connector.h
+        EventLoopThreadPool.h
         )
 install(FILES ${HEADERS} DESTINATION include)

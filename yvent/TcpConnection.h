@@ -39,6 +39,7 @@ public:
         {return name_;}
     void send(const std::string& message);
     void shutdown();
+    EventLoop* getLoop() const { return loop_; }
 private:
     void handleRead();
     void handleClose();

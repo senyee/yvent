@@ -2,6 +2,8 @@
 #include <thread>
 #include <stdio.h>
 #include <unistd.h>
+#include <unistd.h>	// syscall()
+#include <syscall.h> // SYS_gettid
 #include "yvent/EventLoop.h"
 #include "yvent/Channel.h"
 #include "yvent/InetAddr.h"
@@ -9,6 +11,7 @@
 #include "yvent/TcpServer.h"
 #include "yvent/TcpConnection.h"
 #include "yvent/Connector.h"
+#include "yvent/EventLoopThreadPool.h"
 #include "gtest/gtest.h"
 using namespace yvent;
 namespace {
@@ -80,6 +83,39 @@ TEST_F(TcpConnectionTest,Connector) {
     });
     connector.start();
     //netcat -l -p 1234
+    //loop.loop();
+}
+
+TEST_F(TcpConnectionTest,EventLoopThreadPoolTest) {
+    EventLoop loop;
+    ASSERT_TRUE(loop.isInLoopThread());
+
+    EventLoopThreadPool threads(&loop);
+    threads.setThreadNum(4);
+    threads.start();
+}
+
+pid_t gettid()
+{
+    return static_cast<pid_t>(::syscall(SYS_gettid));
+}
+
+TEST_F(TcpConnectionTest,TcpServerPoolTest) {
+    EventLoop loop;
+    ASSERT_TRUE(loop.isInLoopThread());
+
+    InetAddr host(1234);
+    TcpServer server(&loop, host);
+    server.setThreadNum(4);
+    server.start();
+    std::cout << "baseLoop[" << &loop << "]" << std::endl;
+    server.setMessageCallback([](const TcpConnectionPtr& conn, Buffer* buffer ) {
+        char buf[32] = {0};
+        sprintf(buf, "%p--pid[%d]", conn->getLoop(), gettid());
+        conn->send(buffer->retrieveAllAsString());
+        conn->send(buf);
+        //conn->shutdown();
+    });
     //loop.loop();
 }
 

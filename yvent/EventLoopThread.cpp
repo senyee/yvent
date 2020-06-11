@@ -43,6 +43,7 @@ EventLoop* EventLoopThread::starLoop()
 
 void EventLoopThread::threadFunc()
 {
+    LOG_TRACE("thead start");
     assert(nullptr == loop_);
     EventLoop loop;
     loop_ = &loop;

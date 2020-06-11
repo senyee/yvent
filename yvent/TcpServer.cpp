@@ -5,13 +5,15 @@
 #include "Logging.h"
 #include "Callbacks.h"
 #include "TcpConnection.h"
+#include "EventLoop.h"
 using namespace yvent;
 
 TcpServer::TcpServer(EventLoop *loop, const InetAddr &host)
         :loop_(loop),
         host_(host),
         nextConnId_(0),
-        acceptor_(loop, host)
+        acceptor_(loop, host),
+        threads_(loop)
 {
     acceptor_.setNewConnectionCallback(std::bind(&TcpServer::newConnection, this, _1, _2));
 }
@@ -22,6 +24,7 @@ TcpServer::~TcpServer()
 
 void TcpServer::start()
 {
+    threads_.start();
     acceptor_.listen();
 }
 
@@ -33,15 +36,28 @@ void TcpServer::newConnection(int cfd, const InetAddr &peer)
     LOG_TRACE("newConnection:%s", namebuf);
     ++nextConnId_;
     std::string name(namebuf);
-    std::shared_ptr<TcpConnection> conn(new TcpConnection(loop_, name, cfd, host_, peer) );
+
+    EventLoop* ioLoop = threads_.getNextEventLoop();
+    std::shared_ptr<TcpConnection> conn(new TcpConnection(ioLoop, name, cfd, host_, peer) );
     conn->setReadCallback(messageCallback_);
     conn->setCloseCallback([this](const TcpConnectionPtr &tcpConnectionPtr){this->handleClose(tcpConnectionPtr);});
-    conn->enableRead();
+    ioLoop->runInLoop([conn](){
+        conn->enableRead();
+    });
     connections_[name] = conn;
 }
 
 void TcpServer::handleClose(const TcpConnectionPtr &tcpConnectionPtr)
 {
+    LOG_INFO("close %s",tcpConnectionPtr->name().c_str());
+    loop_->runInLoop([this, tcpConnectionPtr](){
+        this->handleCloseInLoop(tcpConnectionPtr);
+    });
+}
+
+void TcpServer::handleCloseInLoop(const TcpConnectionPtr &tcpConnectionPtr)
+{
+    assert(loop_->isInLoopThread());
     LOG_INFO("close %s",tcpConnectionPtr->name().c_str());
     connections_.erase(tcpConnectionPtr->name());
 }

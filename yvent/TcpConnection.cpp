@@ -35,6 +35,7 @@ void TcpConnection::enableRead()
     assert(state_ == kConnecting);
     state_ = kConnected;
     channel_.enableRead();
+    if (connectionCallback_) connectionCallback_(shared_from_this());
 }
 
 void TcpConnection::handleRead()

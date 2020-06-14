@@ -22,6 +22,8 @@ public:
     void start();
     void setMessageCallback(const MessageCallback &cb)
         {messageCallback_ = cb;}
+    void setConnectionCallback(const ConnectionCallback& cb)
+        { connectionCallback_ = cb; }
     void setThreadNum(int num) { threads_.setThreadNum(num); }
 private:
     void newConnection(int cfd, const InetAddr &peer);
@@ -35,6 +37,7 @@ private:
     int nextConnId_;
     Acceptor acceptor_;
     MessageCallback messageCallback_;
+    ConnectionCallback connectionCallback_;
     ConnectionMap connections_;
     EventLoopThreadPool threads_;
 };

@@ -39,6 +39,7 @@ void TcpServer::newConnection(int cfd, const InetAddr &peer)
 
     EventLoop* ioLoop = threads_.getNextEventLoop();
     std::shared_ptr<TcpConnection> conn(new TcpConnection(ioLoop, name, cfd, host_, peer) );
+    conn->setConnectionCallback(connectionCallback_);
     conn->setReadCallback(messageCallback_);
     conn->setCloseCallback([this](const TcpConnectionPtr &tcpConnectionPtr){this->handleClose(tcpConnectionPtr);});
     ioLoop->runInLoop([conn](){

@@ -3,6 +3,7 @@
 
 #include "Connector.h"
 #include "Callbacks.h"
+#include "TcpConnection.h"
 namespace yvent
 {
 
@@ -14,6 +15,7 @@ public:
     ~TcpClient();
 
     void start();
+    void send(const std::string& message);
     void setConnectionCallback(const ConnectionCallback& cb)
         { connectionCallback_ = cb; }
     void setMessageCallback(const MessageCallback& cb)

@@ -22,9 +22,20 @@ TcpClient::~TcpClient()
 
 void TcpClient::start()
 {
-    assert(loop_->isInLoopThread());
-    connector_->start();
+    loop_->runInLoop([this](){
+        this->connector_->start();
+    });
+    
 }
+
+void TcpClient::send(const std::string& message)
+{
+    loop_->runInLoop([this, message](){
+        this->connection_->send(message);
+    });
+    
+}
+
 void TcpClient::newConnection(const int cfd, const InetAddr& local)
 {
     LOG_TRACE("TcpClient newConnection");

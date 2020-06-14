@@ -29,6 +29,8 @@ public:
     ~TcpConnection();
 
     void enableRead();
+    void setConnectionCallback(const ConnectionCallback& cb)
+        { connectionCallback_ = cb; }
     void setReadCallback(const MessageCallback &cb)
         { messageCallback_ = cb; }
     void setCloseCallback(const CloseCallback &cb)
@@ -58,6 +60,7 @@ private:
     InetAddr local_;
     InetAddr peer_;
     Channel channel_;
+    ConnectionCallback connectionCallback_;
     MessageCallback messageCallback_;
     CloseCallback   closeCallback_;
     WriteCompleteCallback writeCompleteCallback_;

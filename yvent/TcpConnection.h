@@ -40,6 +40,9 @@ public:
     void send(const std::string& message);
     void shutdown();
     EventLoop* getLoop() const { return loop_; }
+    void forceClose();
+    bool connected() const;
+    bool disconnected() const;
 private:
     void handleRead();
     void handleClose();
@@ -47,6 +50,7 @@ private:
     void handleWrite();
     void sendInLoop(const std::string& message);
     void shutdownInLoop();
+    void forceCloseInLoop();
 private:
     EventLoop *loop_;
     std::string name_;

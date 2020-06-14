@@ -13,6 +13,7 @@ set(SOURCE_FILES
         Buffer.cpp
         Connector.cpp
         EventLoopThreadPool.cpp
+        TcpClient.cpp
         )
 
 add_library(yvent STATIC ${SOURCE_FILES})
@@ -37,5 +38,6 @@ set(HEADERS
         Buffer.h
         Connector.h
         EventLoopThreadPool.h
+        TcpClient.h
         )
 install(FILES ${HEADERS} DESTINATION include)

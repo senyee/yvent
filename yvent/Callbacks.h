@@ -15,6 +15,7 @@ using std::placeholders::_5;
 class TcpConnection;
 class Buffer;
 typedef std::shared_ptr<TcpConnection> TcpConnectionPtr;
+typedef std::function<void(const TcpConnectionPtr&)> ConnectionCallback;
 typedef std::function<void (const int cfd,const InetAddr& peer)> NewConnectionCallback;
 typedef std::function<void()> ErrorCallback;
 typedef std::function<void(const TcpConnectionPtr&, Buffer* buffer)> MessageCallback;

@@ -13,6 +13,8 @@ public:
     explicit
     InetAddr(uint16_t port, bool loopback = false);
     InetAddr(const std::string& ip, uint16_t port);
+    explicit
+    InetAddr(const struct sockaddr_in &addr);
     ~InetAddr();
 
     const struct sockaddr * getSockaddr() const 

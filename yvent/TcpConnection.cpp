@@ -4,6 +4,7 @@
 #include "Logging.h"
 #include "EventLoop.h"
 #include "Channel.h"
+
 using namespace yvent;
 
 TcpConnection::TcpConnection(EventLoop *loop, const std::string &name,
@@ -24,6 +25,7 @@ TcpConnection::TcpConnection(EventLoop *loop, const std::string &name,
 
 TcpConnection::~TcpConnection()
 {
+    LOG_TRACE("TcpConnection die");
     assert(state_ == kDisconnected);
     ::close(cfd_);
 }
@@ -165,6 +167,31 @@ void TcpConnection::shutdownInLoop()
             LOG_SYSERR("::shutdown err");
         }
     }
+}
+
+void TcpConnection::forceClose()
+{
+    if (state_ != kDisconnected) {
+        loop_->runInLoop( std::bind(&TcpConnection::forceCloseInLoop, shared_from_this()) );
+    }
+}
+
+void TcpConnection::forceCloseInLoop()
+{
+    assert(loop_->isInLoopThread());
+    if (state_ != kDisconnected) {
+        handleClose();
+    }
+}
+
+bool TcpConnection::connected() const
+{
+    return state_ == kConnected;
+}
+
+bool TcpConnection::disconnected() const
+{
+    return state_ == kDisconnected;
 }
 
 

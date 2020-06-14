@@ -35,6 +35,7 @@ set(SOURCE_FILES
         testTimerQueue.cpp
         testBuffer.cpp
         testTcpConnection.cpp
+        testTcpClient.cpp
         )
 add_executable(target ${SOURCE_FILES})
 target_link_libraries(target yvent gtest_main)

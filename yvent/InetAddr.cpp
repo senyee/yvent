@@ -25,6 +25,11 @@ InetAddr::InetAddr(const std::string& ip, uint16_t port)
     addr_.sin_port = htons(port);
 }
 
+InetAddr::InetAddr(const struct sockaddr_in &addr):
+            addr_(addr)
+{
+}
+
 InetAddr::~InetAddr()
 {
     

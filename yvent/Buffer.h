@@ -31,6 +31,17 @@ public:
     const char *peek() const
         { return begin() + readerIndex_; }
 
+    int32_t peekInt32() const
+        { return *reinterpret_cast<const int32_t*>(peek()); }
+
+    int32_t retrieve32()
+    {
+        assert(readableBytes() >= sizeof(int32_t));
+        int32_t ret = peekInt32();
+        retrieve(sizeof(int32_t));
+        return ret;
+    }
+
     void append(const void* data, size_t len)
     {
         append(static_cast<const char*>(data), len);
@@ -41,6 +52,14 @@ public:
         ensureWritableBytes(len);
         std::copy(data, data+len, beginWrite());
         hasWritten(len);
+    }
+
+    void prepend(const void* data, size_t len)
+    {
+        assert(len <= prependableBytes());
+        readerIndex_ -= len;
+        const char* d = static_cast<const char*>(data);
+        std::copy(d, d+len, begin()+readerIndex_);
     }
 
     void ensureWritableBytes(size_t len)

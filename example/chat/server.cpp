@@ -3,6 +3,7 @@
 #include <iostream>
 #include "yvent/EventLoop.h"
 #include "yvent/TcpServer.h"
+#include "codec.h"
 
 using namespace yvent;
 
@@ -28,14 +29,14 @@ private:
         }
         std::cout << "users:" << connections_.size() << std::endl;
     }
-    void onMessage(const TcpConnectionPtr& conn, Buffer* buffer)
+    void onMessage(const TcpConnectionPtr& conn, std::string message)
     {
-        std::string message = buffer->retrieveAllAsString();
+        std::cout << "recive:" << message << std::endl;
         for (auto& c : connections_) {
             //std::cout << c->name() << ":" << buffer->retrieveAllAsString() << std::endl;
             if( conn != c) {
                 std::cout << c->name() << " send\n";
-                c->send(message);
+                codec_.send(c, message);
             }
         }
     }
@@ -43,13 +44,17 @@ private:
     typedef std::set<TcpConnectionPtr> ConnectionList;
     TcpServer server_;
     ConnectionList connections_;
+    LenHeaderCodec codec_;
 };
 
 ChatServer::ChatServer(EventLoop* loop, const InetAddr& server):
-            server_(loop, server)
+            server_(loop, server),
+            codec_([this](const TcpConnectionPtr& conn, std::string message){
+                this->onMessage(conn, message);
+            })
 {
     server_.setMessageCallback([this](const TcpConnectionPtr& conn, Buffer* buffer){
-        this->onMessage(conn, buffer);
+        this->codec_.onMessage(conn, buffer);
     });
     server_.setConnectionCallback([this](const TcpConnectionPtr& conn){
         this->onConnection(conn);

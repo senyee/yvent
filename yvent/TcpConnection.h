@@ -39,7 +39,9 @@ public:
         { writeCompleteCallback_ = cb; }
     std::string name() const
         {return name_;}
+    void send(Buffer& buffer);
     void send(const std::string& message);
+    void send(const char* data, size_t len);
     void shutdown();
     EventLoop* getLoop() const { return loop_; }
     void forceClose();
@@ -51,6 +53,7 @@ private:
     void handleError();
     void handleWrite();
     void sendInLoop(const std::string& message);
+    void sendInLoop(const char* data, size_t len);
     void shutdownInLoop();
     void forceCloseInLoop();
 private:

@@ -60,7 +60,8 @@ void TcpConnection::handleClose()
     state_ = kDisconnected;
     LOG_TRACE("closed:%s", name_.c_str());
     channel_.disableAll();
-    if(closeCallback_) closeCallback_(shared_from_this());
+    if (connectionCallback_) connectionCallback_(shared_from_this());
+    if (closeCallback_) closeCallback_(shared_from_this());
 }
 
 void TcpConnection::handleError()
@@ -73,22 +74,51 @@ void TcpConnection::handleError()
     LOG_SYSERR("err = %d", err);
 }
 
-void TcpConnection::send(const std::string& message)
+void TcpConnection::send(Buffer& buffer)
 {
     if (state_ != kConnected) {
         LOG_WARN("TcpConnection not connected,, give up send");
         return;
     }
     if (loop_->isInLoopThread()) {
-        sendInLoop(message);
+        sendInLoop(buffer.peek(), buffer.readableBytes());
+        buffer.retrieveAll();
+    }
+    else {
+        loop_->runInLoop([ptr = shared_from_this(), 
+                          str = buffer.retrieveAllAsString()]()
+                {
+                    ptr->sendInLoop(str); 
+                });
+    }
+}
+
+void TcpConnection::send(const std::string& message)
+{
+    send(message.data(), message.size());
+}
+
+void TcpConnection::send(const char* data, size_t len)
+{
+    if (state_ != kConnected) {
+        LOG_WARN("TcpConnection not connected,, give up send");
+        return;
+    }
+    if (loop_->isInLoopThread()) {
+        sendInLoop(data, len);
     } else {
-        loop_->runInLoop([&](){
-            this->sendInLoop(message);
+        loop_->runInLoop([ptr = shared_from_this(),str=std::string(data,len)](){
+            ptr->sendInLoop(str);
         });
     }
 }
 
 void TcpConnection::sendInLoop(const std::string& message)
+{
+    sendInLoop(message.data(), message.size());
+}
+
+void TcpConnection::sendInLoop(const char* data, size_t len)
 {
     assert(loop_->isInLoopThread());
     if (state_ == kDisconnected) {
@@ -98,24 +128,24 @@ void TcpConnection::sendInLoop(const std::string& message)
     ssize_t n = 0;
     //try writing directly
     if (!channel_.isWriting() && outBuffer_.readableBytes() == 0) {
-        n = ::write(channel_.fd(), message.data(), message.size());
+        n = ::write(channel_.fd(), data, len);
         if(n == -1) {
             if (errno != EAGAIN) {
                 LOG_SYSERR("errno = %d",errno);
             }
             n = 0;
-        } else if (static_cast<size_t>(n) < message.size()) {
+        } else if (static_cast<size_t>(n) < len) {
             LOG_TRACE("remain data to send");
         } else if (writeCompleteCallback_) {
-            loop_->runInLoop([this](){
-                this->writeCompleteCallback_(shared_from_this());
+            loop_->runInLoop([ptr = shared_from_this()](){
+                ptr->writeCompleteCallback_(ptr);
             });
         }
     }
 
     assert(n >= 0);
-    if (static_cast<size_t>(n) < message.size()) {
-        outBuffer_.append(message.data() + n, message.size() - n);
+    if (static_cast<size_t>(n) < len) {
+        outBuffer_.append(data + n, len - n);
         if (!channel_.isWriting()) {
             channel_.enableWrite();
         }
@@ -137,8 +167,8 @@ void TcpConnection::handleWrite()
                     shutdownInLoop();
                 }
                 if (writeCompleteCallback_) {
-                    loop_->runInLoop([this](){
-                        this->writeCompleteCallback_(shared_from_this());
+                    loop_->runInLoop([ptr = shared_from_this()](){
+                        ptr->writeCompleteCallback_(ptr);
                     });
                 }
             } else {
@@ -154,8 +184,8 @@ void TcpConnection::shutdown()
 {
     if (state_ == kConnected) {
         state_ = kDisconnecting;
-        loop_->runInLoop([this](){
-            shared_from_this()->shutdownInLoop();
+        loop_->runInLoop([ptr = shared_from_this()](){
+            ptr->shutdownInLoop();
         });
     }
 }

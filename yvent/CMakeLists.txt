@@ -14,6 +14,7 @@ set(SOURCE_FILES
         Connector.cpp
         EventLoopThreadPool.cpp
         TcpClient.cpp
+        Logging.cpp
         )
 
 add_library(yvent STATIC ${SOURCE_FILES})

@@ -6,6 +6,8 @@
 
 using namespace yvent;
 
+const char Buffer::kCRLF[] = "\r\n";
+
 Buffer::Buffer(size_t initialSize /*= kInitialSize*/)
             :buffer_(kCheapPrepend + kInitialSize),
              readerIndex_(kCheapPrepend),

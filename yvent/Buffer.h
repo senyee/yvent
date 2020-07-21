@@ -5,6 +5,7 @@
 #include <string>
 #include <cassert>
 #include <cstring>
+
 namespace yvent
 {
 
@@ -41,6 +42,10 @@ public:
         retrieve(sizeof(int32_t));
         return ret;
     }
+    void append(const std::string& str)
+    {
+        append(str.data(), str.size());
+    }
 
     void append(const void* data, size_t len)
     {
@@ -75,10 +80,29 @@ public:
         return begin() + writerIndex_;
     }
 
+    const char* beginWrite() const
+    { 
+        return begin() + writerIndex_;
+    }
+
     void hasWritten(size_t len)
     {
         assert(len <= writableBytes());
         writerIndex_ += len;
+    }
+
+    const char* findCRLF() const
+    {
+        const char* crlf = std::search(peek(), beginWrite(), kCRLF, kCRLF+2);
+        return crlf == beginWrite() ? NULL : crlf;
+    }
+
+    const char* findCRLF(const char* start) const
+    {
+        assert(peek() <= start);
+        assert(start <= beginWrite());
+        const char* crlf = std::search(start, beginWrite(), kCRLF, kCRLF+2);
+        return crlf == beginWrite() ? NULL : crlf;
     }
 
     void retrieve(size_t len)
@@ -107,6 +131,13 @@ public:
     std::string retrieveAllAsString()
     {
         return retrieveAsString(readableBytes());
+    }
+
+    void retrieveUntil(const char* end)
+    {
+        assert(peek() <= end);
+        assert(end <= beginWrite());
+        retrieve(end - peek());
     }
 
     ssize_t readFd(int fd, int* savedErrno);
@@ -139,6 +170,7 @@ private:
     std::vector<char> buffer_;
     size_t readerIndex_;
     size_t writerIndex_;
+    static const char kCRLF[];
 };
 
 } // namespace yvent

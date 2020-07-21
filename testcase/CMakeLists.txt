@@ -31,11 +31,12 @@ if (CMAKE_VERSION VERSION_LESS 2.8.11)
 endif()
 
 set(SOURCE_FILES
-        testEventLoop.cpp
-        testTimerQueue.cpp
-        testBuffer.cpp
-        testTcpConnection.cpp
-        testTcpClient.cpp
+        #testEventLoop.cpp
+        #testTimerQueue.cpp
+        #testBuffer.cpp
+        #testTcpConnection.cpp
+        #testTcpClient.cpp
+        testHttpServer.cpp
         )
 add_executable(target ${SOURCE_FILES})
-target_link_libraries(target yvent gtest_main)
+target_link_libraries(target yvent gtest_main yhttp)

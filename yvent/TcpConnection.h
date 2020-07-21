@@ -3,6 +3,7 @@
 #include <functional>
 #include <memory>
 #include <atomic>
+#include <any>
 #include "Callbacks.h"
 #include "InetAddr.h"
 #include "Channel.h"
@@ -39,6 +40,12 @@ public:
         { writeCompleteCallback_ = cb; }
     std::string name() const
         {return name_;}
+    void setContext(const std::any& context)
+        { context_ = context; }
+    const std::any& getContext() const
+        { return context_; }
+    std::any* getMutableContext()
+        { return &context_; }
     void send(Buffer& buffer);
     void send(const std::string& message);
     void send(const char* data, size_t len);
@@ -70,6 +77,7 @@ private:
     Buffer inBuffer_;
     Buffer outBuffer_;
     std::atomic_int32_t state_;
+    std::any context_;
 };
 
 } // namespace yvent

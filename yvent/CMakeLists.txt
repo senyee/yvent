@@ -17,6 +17,7 @@ set(SOURCE_FILES
         Logging.cpp
         )
 
+
 add_library(yvent STATIC ${SOURCE_FILES})
 target_link_libraries(yvent pthread)
 
@@ -42,3 +43,5 @@ set(HEADERS
         TcpClient.h
         )
 install(FILES ${HEADERS} DESTINATION include)
+
+add_subdirectory(http)

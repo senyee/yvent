@@ -4,6 +4,9 @@
 #include <memory>
 #include <atomic>
 #include <any>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include "Callbacks.h"
 #include "InetAddr.h"
 #include "Channel.h"
@@ -46,6 +49,10 @@ public:
         { return context_; }
     std::any* getMutableContext()
         { return &context_; }
+    void setSendFd(const int fd, const struct stat& sbuf)
+        { sendFd_ = fd; 
+            sbuf_ = sbuf;
+        }
     void send(Buffer& buffer);
     void send(const std::string& message);
     void send(const char* data, size_t len);
@@ -78,6 +85,8 @@ private:
     Buffer outBuffer_;
     std::atomic_int32_t state_;
     std::any context_;
+    int sendFd_;
+    struct stat sbuf_;
 };
 
 } // namespace yvent

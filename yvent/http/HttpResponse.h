@@ -23,7 +23,8 @@ class HttpResponse
 
     explicit HttpResponse(bool close)
     : statusCode_(kUnknown),
-        closeConnection_(close)
+        closeConnection_(close),
+        bodyLen_(0)
     {
     }
 
@@ -48,14 +49,20 @@ class HttpResponse
     void setBody(const std::string& body)
         { body_ = body; }
 
+    void appendBody(const std::string& body)
+        { body_ += body; }
+
     void appendToBuffer(Buffer* output) const;
 
+    void setBodyLen(const size_t bodyLen)
+        { bodyLen_ = bodyLen; }
 private:
     HttpStatusCode statusCode_;
     std::map<std::string, std::string> headers_;
     std::string statusMessage_;
     bool closeConnection_;
     std::string body_;
+    size_t bodyLen_;
 };
 
 }  // namespace yvent

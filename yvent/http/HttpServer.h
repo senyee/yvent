@@ -13,7 +13,7 @@ class HttpResponse;
 class HttpServer
 {
 public:
-    typedef std::function<void (const HttpRequest&, HttpResponse*)> HttpCallback;
+    typedef std::function<void (const TcpConnectionPtr& conn, const HttpRequest&, HttpResponse*)> HttpCallback;
     HttpServer(EventLoop* loop, const InetAddr& listenAddr);
 
     void setHttpCallback(const HttpCallback& cb)

@@ -19,7 +19,8 @@ void HttpResponse::appendToBuffer(Buffer* output) const
     }
     else
     {
-        snprintf(buf, sizeof buf, "Content-Length: %zd\r\n", body_.size());
+        size_t bodyLen = bodyLen_ ? bodyLen_ : body_.size();
+        snprintf(buf, sizeof buf, "Content-Length: %zd\r\n", bodyLen);
         output->append(buf);
         output->append("Connection: Keep-Alive\r\n");
     }

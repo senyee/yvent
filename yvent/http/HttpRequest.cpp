@@ -39,6 +39,61 @@ bool HttpRequest::setMethod(const char* start, const char* end)
     return method_ != Invalid;
 }
 
+void HttpRequest::setPath(const char* start, const char* end)
+{
+    enum { 
+          kStart = 0,
+          kPercent
+    } state = kStart;
+
+    const char* p = start;
+    int hex1, hex2;
+    for(; p < end; ++p) {
+        char c = *p;
+        switch (state) {
+            case kStart:
+                if( c == '%') {
+                    state = kPercent;
+                } else {
+                    path_ += c; 
+                }
+                break;
+            case kPercent:
+                if (isdigit(c)) {
+                    hex1 = c - '0';
+                }
+                else {
+                    hex1 = (c | 0x20);//转小写
+                    if (hex1 >= 'a' && hex1 <= 'f') {
+                        hex1 = hex1 - 'a' + 10; //字母转数字
+                    } else {
+                        break;
+                    }
+                }
+
+                c = *++p;
+
+                if (isdigit(c)) {
+                    hex2 = c - '0';
+                }
+                else {
+                    hex2 = (c | 0x20);
+                    if (hex2 >= 'a' && hex2 <= 'f') {
+                        hex2 = hex2 - 'a' + 10;
+                    } else {
+                        break;
+                    }
+                }
+
+                path_ += static_cast<char>((hex1 << 4) + hex2);
+                state = kStart;
+                break;
+            default:
+                break;
+        }
+    }
+}
+
 const char* HttpRequest::methodString() const
 {
     const char* result = "UNKNOWN";

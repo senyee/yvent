@@ -32,8 +32,8 @@ public:
 
     const char* methodString() const;
 
-    void setPath(const char* start, const char* end)
-        { path_.assign(start, end); }
+    void setPath(const char* start, const char* end);
+        //{ path_.assign(start, end); }
 
     const std::string path() const
         { return path_; }

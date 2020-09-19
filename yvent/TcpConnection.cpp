@@ -1,5 +1,7 @@
 #include <unistd.h>
 #include <cassert>
+#include <sys/sendfile.h>
+#include <limits.h>
 #include "TcpConnection.h"
 #include "Logging.h"
 #include "EventLoop.h"
@@ -15,12 +17,14 @@ TcpConnection::TcpConnection(EventLoop *loop, const std::string &name,
         local_(local),
         peer_(peer),
         channel_(loop, cfd),
-        state_(kConnecting)
+        state_(kConnecting),
+        sendFd_(-1)
 {
     channel_.setReadCallback([this](){this->handleRead();});
     channel_.setCloseCallback([this](){this->handleClose();});
     channel_.setErrorCallback([this](){this->handleError();});
     channel_.setWriteCallback([this](){this->handleWrite();});
+    memset(&sbuf_, 0, sizeof(sbuf_));
 }
 
 TcpConnection::~TcpConnection()
@@ -144,7 +148,7 @@ void TcpConnection::sendInLoop(const char* data, size_t len)
     }
 
     assert(n >= 0);
-    if (static_cast<size_t>(n) < len) {
+    if (static_cast<size_t>(n) < len || sbuf_.st_size != 0) {
         outBuffer_.append(data + n, len - n);
         if (!channel_.isWriting()) {
             channel_.enableWrite();
@@ -156,26 +160,38 @@ void TcpConnection::handleWrite()
 {
     assert(loop_->isInLoopThread());
     if (channel_.isWriting()) {
-        ssize_t n = ::write(channel_.fd(), outBuffer_.peek(), outBuffer_.readableBytes());
-        if (n == -1) {
-            LOG_SYSERR("::write");
-        } else {
-            outBuffer_.retrieve(static_cast<size_t>(n));
-            if (outBuffer_.readableBytes() == 0) {
-                channel_.disableWrite();
-                if (state_ == kDisconnecting) {
-                    shutdownInLoop();
-                }
-                if (writeCompleteCallback_) {
-                    loop_->runInLoop([ptr = shared_from_this()](){
-                        ptr->writeCompleteCallback_(ptr);
-                    });
-                }
+        if(outBuffer_.readableBytes() != 0) {
+            ssize_t n = ::write(channel_.fd(), outBuffer_.peek(), outBuffer_.readableBytes());
+            if (n == -1) {
+                LOG_SYSERR("::write");
             } else {
-                LOG_TRACE("more data to write");
+                outBuffer_.retrieve(static_cast<size_t>(n));
+                if (outBuffer_.readableBytes() == 0 && sbuf_.st_size == 0) {
+                    channel_.disableWrite();
+                    if (state_ == kDisconnecting) {
+                        shutdownInLoop();
+                    }
+                    if (writeCompleteCallback_) {
+                        loop_->runInLoop([ptr = shared_from_this()](){
+                            ptr->writeCompleteCallback_(ptr);
+                        });
+                    }
+
+                } else {
+                    LOG_TRACE("more data to write");
+                }
+            }
+        } else if (sbuf_.st_size != 0) {
+            ssize_t n = ::sendfile(channel_.fd(), sendFd_, NULL, INT_MAX);
+            if(n < 0) return;
+            sbuf_.st_size -= n;
+            if(sbuf_.st_size == 0)
+            {
+                channel_.disableWrite();
             }
         }
-    } else {
+    }
+    else {
         LOG_TRACE("TcpConnection is down, no more writing");
     }
 }

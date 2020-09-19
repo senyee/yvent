@@ -2,6 +2,7 @@
 #include "HttpRequest.h"
 #include "HttpResponse.h"
 #include "yvent/Logging.h"
+#include <sys/sendfile.h>
 using namespace yvent;
 
 HttpServer::HttpServer(EventLoop* loop, const InetAddr& listenAddr):
@@ -45,7 +46,7 @@ void HttpServer::onRequest(const TcpConnectionPtr& conn, const HttpRequest& req)
         (req.version() == HttpRequest::Http10 && connection != "Keep-Alive");
     HttpResponse response(close);
     if(httpCallback_)
-        httpCallback_(req, &response);
+        httpCallback_(conn, req, &response);
     Buffer buf;
     response.appendToBuffer(&buf);
     conn->send(buf);

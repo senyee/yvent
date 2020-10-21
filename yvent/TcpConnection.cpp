@@ -119,6 +119,7 @@ void TcpConnection::send(const char* data, size_t len)
 
 void TcpConnection::sendInLoop(const std::string& message)
 {
+    assert(loop_->isInLoopThread());
     sendInLoop(message.data(), message.size());
 }
 
@@ -188,6 +189,10 @@ void TcpConnection::handleWrite()
             if(sbuf_.st_size == 0)
             {
                 channel_.disableWrite();
+                if (state_ == kDisconnecting) {
+                    shutdownInLoop();
+                }
+                ::close(sendFd_);
             }
         }
     }

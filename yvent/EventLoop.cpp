@@ -14,10 +14,15 @@ namespace
 {
 
 thread_local EventLoop* t_Eventloop = nullptr;
+thread_local pid_t  t_cachedTid;
 
 pid_t gettid()
 {
-    return static_cast<pid_t>(::syscall(SYS_gettid));
+    if (__builtin_expect(t_cachedTid == 0, 0))
+    {
+      t_cachedTid = static_cast<pid_t>(::syscall(SYS_gettid));
+    }
+    return t_cachedTid;
 }
 
 class IgnoreSigPipe
